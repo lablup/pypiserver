@@ -5,6 +5,8 @@
 
 from os.path import dirname
 from pathlib import Path
+import pickle
+import time
 import typing as t
 import threading
 
@@ -115,6 +117,67 @@ class CacheManager:
     def invalidate_root_cache(self, root: t.Union[Path, str]):
         with self.listdir_lock:
             self.listdir_cache.pop(str(root), None)
+
+
+
+class CacheFileManager(CacheManager):
+    """
+    Serialize/deserialize package index cache file for faster server loading.
+    """
+    pkg_index_file: Path = None
+    using_index_file: bool = False
+
+    def __init__(self, pkg_index_file: Path = None):
+        super().__init__()
+
+        if not pkg_index_file or not pkg_index_file.exists():
+            return
+
+        # Load the listdir_cache from package index file if exists.
+        try:
+            print("loading cache index file ...")
+            start = time.monotonic()
+            with open(pkg_index_file, 'rb') as f:
+                self.listdir_cache = pickle.load(f)
+            end = time.monotonic()
+            print("time elapsed for loading:", end - start, "(s).")
+            self.pkg_index_file = pkg_index_file
+            self.using_index_file = True
+        except (IOError, Exception):
+            pass
+
+    def listdir(
+        self,
+        root: t.Union[Path, str],
+        impl_fn: t.Callable[[Path], t.Iterable["PkgFile"]],
+    ) -> t.Iterable["PkgFile"]:
+        """
+        If index cache file is loaded, use it exclusively without live updating.
+        """
+        if not self.using_index_file:
+            # No file index cache found. Fallback to the default live cache.
+            return super().listdir(root, impl_fn)
+        return self.listdir_cache.get(root, {})
+
+    def force_update_listdir_cache(
+        self,
+        root: t.Union[Path, str],
+        impl_fn: t.Callable[[Path], t.Iterable["PkgFile"]],
+    ) -> t.Iterable["PkgFile"]:
+        """
+        Force update listdir_cache package index for given list of root directory.
+        """
+        with self.listdir_lock:
+            v = list(impl_fn(Path(root)))
+            self.listdir_cache[root] = v
+            return v
+
+    def serialize_listdir_cache(self):
+        """
+        Serialize the current listdir_cache package index to a file for the next use.
+        """
+        with open(self.pkg_index_file, 'wb') as f:
+            pickle.dump(self.listdir_cache, f)
 
 
 class _EventHandler:
