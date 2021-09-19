@@ -1,15 +1,14 @@
 from glob import glob
 import itertools
 from pathlib import Path
+import sys
 import time
 
 from pypiserver.backend import listdir
 from pypiserver.cache import CacheFileManager
 
 # The paths should be absolute.
-PACKAGE_ROOTS = [
-    Path("/path/to/pypi/packages")
-]
+PACKAGE_ROOTS = None
 PKG_INDEX_FILE = "pkg_index_cache.pickle"
 
 
@@ -43,4 +42,8 @@ def main():
 
 
 if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print("at least one package root directory should be specified.")
+        exit(1)
+    PACKAGE_ROOTS = [Path(r).resolve() for r in sys.argv[1:]]
     main()

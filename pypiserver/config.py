@@ -270,7 +270,7 @@ def add_common_args(parser: argparse.ArgumentParser) -> None:
         default=None,
         type=pathlib.Path,
         help=(
-            "Pre-built package index file. If exists, the cache manager will"
+            "Pre-built package index file. If it exists, the cache manager will"
             " load and exclusively reference it for package listing without"
             " watching package directories. If not exists, just falls back to"
             " the original live update with wachdog."

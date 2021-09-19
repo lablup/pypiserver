@@ -181,6 +181,15 @@ not officially supported, and will not receive bugfixes or new features.
         Add "Cache-Control: max-age=AGE, public" header to package downloads.
         Pip 6+ needs this for caching.
 
+      --pkg-index-file INDEX_CACHE_FILE
+        Pre-built package index file. If t exists, the cache manager will load and
+        exclusively reference it for package listing without watching package
+        directories. If not exists, just falls back to the original live update
+        with watchdog. This will reduce the initial loading time for package
+        index caching, which is especially helpful to serve large amount of packages.
+        To generate the index file, execute scripts/generate_index_cache.py like:
+        python pypiserver/scripts/generate_index_cache.py /path/to/pypi/packages [...]
+
     pypi-server -h, --help
       Show this help message.
 
