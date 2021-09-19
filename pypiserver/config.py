@@ -266,6 +266,18 @@ def add_common_args(parser: argparse.ArgumentParser) -> None:
     )
 
     parser.add_argument(
+        "--pkg-index-file",
+        default=None,
+        type=pathlib.Path,
+        help=(
+            "Pre-built package index file. If it exists, the cache manager will"
+            " load and exclusively reference it for package listing without"
+            " watching package directories. If not exists, just falls back to"
+            " the original live update with wachdog."
+        ),
+    )
+
+    parser.add_argument(
         "--version",
         action="version",
         version=__version__,
@@ -538,6 +550,7 @@ class _ConfigCommon:
         log_stream: t.Optional[t.IO],
         hash_algo: t.Optional[str],
         backend_arg: str,
+        pkg_index_file: pathlib.Path,
     ) -> None:
         """Construct a RuntimeConfig."""
         # Global arguments
@@ -549,6 +562,7 @@ class _ConfigCommon:
         self.roots = roots
         self.hash_algo = hash_algo
         self.backend_arg = backend_arg
+        self.pkg_index_file = pkg_index_file
 
         # Derived properties are directly based on other properties and are not
         # included in equality checks.
@@ -583,6 +597,7 @@ class _ConfigCommon:
             roots=namespace.package_directory,
             hash_algo=namespace.hash_algo,
             backend_arg=namespace.backend_arg,
+            pkg_index_file=namespace.pkg_index_file,
         )
 
     @property

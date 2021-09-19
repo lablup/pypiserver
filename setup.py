@@ -42,7 +42,7 @@ setup(
     description="A minimal PyPI server for use with pip/easy_install.",
     long_description=read_file("README.rst"),
     version=get_version(),
-    packages=["pypiserver"],
+    packages=["pypiserver", "pypiserver.scripts"],
     package_data={"pypiserver": ["welcome.html"]},
     python_requires=">=3.6",
     setup_requires=setup_requires,

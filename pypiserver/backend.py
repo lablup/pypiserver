@@ -7,7 +7,7 @@ import os
 import typing as t
 from pathlib import Path
 
-from .cache import CacheManager, ENABLE_CACHING
+from .cache import CacheFileManager, CacheManager, ENABLE_CACHING
 from .core import PkgFile
 from .pkg_helpers import (
     normalize_pkgname,
@@ -177,7 +177,11 @@ class CachingFileBackend(SimpleFileBackend):
     ):
         super().__init__(config)
 
-        self.cache_manager = cache_manager or CacheManager()  # type: ignore
+        if not cache_manager:
+            cache_manager = CacheFileManager(config.pkg_index_file) \
+                if config.pkg_index_file and config.pkg_index_file.exists() \
+                else CacheManager()
+        self.cache_manager = cache_manager  # type: ignore
 
     def add_package(self, filename: str, stream: t.BinaryIO) -> None:
         super().add_package(filename, stream)
